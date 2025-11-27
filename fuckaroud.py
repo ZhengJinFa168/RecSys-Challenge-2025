@@ -37,14 +37,14 @@ def main():
 
     start_time = time.time()
 
-    recommender = RP3betaRecommender(URM_train)
+    recommender = EASE_R_Recommender(URM_train)
 
-    recommender.fit(topK=200, alpha = 1, beta=0.3, min_rating=0, implicit=False, normalize_similarity=True)
-    recommender.save_model(folder_path="./saved_models/" ,file_name="P3alphaRecommender")
+    recommender.fit(topK= 212, l2_norm= 0.9608685101611909)
+    recommender.save_model(folder_path="./saved_models/" ,file_name="EASYRRecommender")
 
     print(evaluator_test.evaluateRecommender(recommender))
 
-    outputFile = "outputP3alphaRecommender.csv"
+    outputFile = "outputEASYRRecommender.csv"
     toOutput(user_id_list, recommender, outputFile)
 
     end_time = time.time()

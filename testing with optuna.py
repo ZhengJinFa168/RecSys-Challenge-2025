@@ -4,6 +4,7 @@ import scipy.sparse as sps
 import matplotlib.pyplot as pyplot
 from Evaluation.Evaluator import EvaluatorHoldout
 from Data_manager.split_functions.split_train_validation_random_holdout import split_train_in_two_percentage_global_sample
+from Recommenders.EASE_R.EASE_R_Recommender import EASE_R_Recommender
 from Recommenders.KNN.ItemKNNCFRecommender import ItemKNNCFRecommender
 from Recommenders.SLIM.SLIMElasticNetRecommender import SLIMElasticNetRecommender
 from Recommenders.Similarity.Compute_Similarity_Python import Compute_Similarity_Python
@@ -27,13 +28,12 @@ def objective(trial):
 
     evaluator_test = EvaluatorHoldout(URM_test, cutoff_list=[20])
 
-    recommender = SLIMElasticNetRecommender(URM_train)
+    recommender = EASE_R_Recommender(URM_train)
     # 1.1. Suggest hyperparameters
-    topK = trial.suggest_int('topK', 100, 500)
-    l1_ratio = trial.suggest_float('l1_ratio', 0.00001, 0.01)
-    alpha = trial.suggest_float('alpha', 0.001, 1.0)
+    topK = trial.suggest_int('topK', 50, 1000)
+    l2_norm = trial.suggest_float('l1_ratio', 0.000001, 1)
 
-    recommender.fit(l1_ratio=0.01, alpha = 1.0, positive_only=True, topK = 200)
+    recommender.fit(l2_norm= 1e3, topK = 200)
 
     score, _ = evaluator_test.evaluateRecommender(recommender)
     recall = score['RECALL']
@@ -48,7 +48,7 @@ def main():
     study = optuna.create_study(
         direction='maximize',
         study_name='SLIMElasticNetRecommender',
-        storage='sqlite:///OptunaStudies/iris_rf_optimization.db',  # This saves to a file
+        storage='sqlite:///OptunaStudies/SLIME_optimization.db',  # This saves to a file
     )
     study.optimize(objective, n_trials=20)  # Run 50 trials
     # 3. Print the results
