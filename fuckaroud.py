@@ -7,6 +7,7 @@ from Data_manager.split_functions.split_train_validation_random_holdout import s
 from Recommenders.EASE_R.EASE_R_Recommender import EASE_R_Recommender
 from Recommenders.GraphBased.P3alphaRecommender import P3alphaRecommender
 from Recommenders.GraphBased.RP3betaRecommender import RP3betaRecommender
+from Recommenders.KNN.ItemKNNCFRecommender import ItemKNNCFRecommender
 from Recommenders.MatrixFactorization.IALSRecommender import IALSRecommender
 from Recommenders.MatrixFactorization.NMFRecommender import NMFRecommender
 from Recommenders.MatrixFactorization.PureSVDRecommender import PureSVDRecommender, PureSVDItemRecommender, \
@@ -17,6 +18,7 @@ from Recommenders.Neural.MultVAE_PyTorch_Recommender import MultVAERecommender_P
     MultVAERecommender_PyTorch_OptimizerMask
 from Recommenders.SLIM.SLIMElasticNetRecommender import SLIMElasticNetRecommender
 from Recommenders.Similarity.Compute_Similarity_Python import Compute_Similarity_Python
+from data_exploration import URM_validation
 from helping_methods import toOutput, evaluate_algorithm
 
 import time
@@ -32,20 +34,20 @@ def main():
                               (URM_all_dataframe['UserID'].values, URM_all_dataframe['ItemID'].values)))
 
     URM_train, URM_test = split_train_in_two_percentage_global_sample(URM_all, train_percentage=0.80)
-
+    URM_train, URM_validation = split_train_in_two_percentage_global_sample(URM_train, train_percentage=0.80)
     evaluator_test = EvaluatorHoldout(URM_test, cutoff_list=[20])
 
     start_time = time.time()
 
-    recommender = EASE_R_Recommender(URM_train)
+    recommender = SLIMElasticNetRecommender(URM_train)
 
-    recommender.fit(topK= 212, l2_norm= 0.9608685101611909)
-    recommender.save_model(folder_path="./saved_models/" ,file_name="EASYRRecommender")
+    recommender.fit(topK=436, alpha=0.001239600142319664, l1_ratio=0.001002639662685697)
+    recommender.save_model(folder_path="best_models_test/", file_name="bestSLIMElasticNetRecommender")
 
     print(evaluator_test.evaluateRecommender(recommender))
 
-    outputFile = "outputEASYRRecommender.csv"
-    toOutput(user_id_list, recommender, outputFile)
+    #outputFile = "outputEASYRRecommender.csv"
+    #toOutput(user_id_list, recommender, outputFile)
 
     end_time = time.time()
 

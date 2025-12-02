@@ -40,30 +40,35 @@ def main():
     start_time = time.time()
     recommenders=[]
 
-    slimElasticNetRecommender=SLIMElasticNetRecommender(URM_train)
-    easyRecommender=EASE_R_Recommender(URM_train)
+    slimElasticNetRecommender=SLIMElasticNetRecommender(URM_all)
+    easyRecommender=EASE_R_Recommender(URM_all)
 
-    file_path="./best_models/"
-    if(os.path.exists(file_path + "bestSLIMElasticNetRecommender.zip")):
-        print("SLIMElasticNetRecommender is already trained")
-        slimElasticNetRecommender.load_model(folder_path=file_path, file_name="bestSLIMElasticNetRecommender.zip")
+    test=True
+    if not test:
+        file_path= "best_models_train/"
+        if(os.path.exists(file_path + "bestSLIMElasticNetRecommender.zip")):
+            print("SLIMElasticNetRecommender is already trained")
+            slimElasticNetRecommender.load_model(folder_path=file_path, file_name="bestSLIMElasticNetRecommender.zip")
+        else:
+            slimElasticNetRecommender.fit(topK=436, alpha = 0.001239600142319664, l1_ratio=0.001002639662685697)
+            slimElasticNetRecommender.save_model(folder_path="best_models_train/", file_name="bestSLIMElasticNetRecommender")
+        if (os.path.exists(file_path + "bestEASYR_Recommender.zip")):
+            print("EASYR_Recommender is already trained")
+            easyRecommender.load_model(folder_path=file_path, file_name="bestEASYR_Recommender.zip")
+        else:
+            easyRecommender.fit(topK=100, l2_norm=1e3, normalize_matrix=False)
+            easyRecommender.save_model(folder_path="best_models_train/", file_name="bestEASYR_Recommender")
     else:
-        slimElasticNetRecommender.fit(topK=436, alpha = 0.001239600142319664, l1_ratio=0.001002639662685697)
-        slimElasticNetRecommender.save_model(folder_path="./best_models/", file_name= "bestSLIMElasticNetRecommender")
-    if (os.path.exists(file_path + "bestEASYR_Recommender.zip")):
-        print("EASYR_Recommender is already trained")
-        easyRecommender.load_model(folder_path=file_path, file_name="bestEASYR_Recommender.zip")
-    else:
+        slimElasticNetRecommender.fit(topK=436, alpha=0.001239600142319664, l1_ratio=0.001002639662685697)
         easyRecommender.fit(topK=100, l2_norm=1e3, normalize_matrix=False)
-        easyRecommender.save_model(folder_path="./best_models/", file_name="bestEASYR_Recommender")
-
     #print(slimElasticNetRecommender._compute_item_score(users_to_test))
     #print(easyRecommender._compute_score_W_dense(users_to_test))
     recommenders.append(slimElasticNetRecommender)
     recommenders.append(easyRecommender)
-    coefficients=[1,1]
 
-    finalRecommender = DifferentLossRecommender(URM_train,recommenders)
+    coefficients=[499.9522535401951,337.0469866084344]
+
+    finalRecommender = DifferentLossRecommender(URM_all,recommenders)
 
     finalRecommender.fit(coefficients=coefficients)
     #finalRecommender.save_model(folder_path="./saved_models/" ,file_name="DifferentLossRecommender")

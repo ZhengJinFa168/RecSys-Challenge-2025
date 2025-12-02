@@ -28,12 +28,12 @@ def objective(trial):
 
     evaluator_test = EvaluatorHoldout(URM_test, cutoff_list=[20])
 
-    recommender = EASE_R_Recommender(URM_train)
+    recommender = ItemKNNCFRecommender(URM_train)
     # 1.1. Suggest hyperparameters
     topK = trial.suggest_int('topK', 50, 1000)
-    l2_norm = trial.suggest_float('l1_ratio', 0.000001, 1)
+    shrink = trial.suggest_int('shrink', 1, 1000)
 
-    recommender.fit(l2_norm= 1e3, topK = 200)
+    recommender.fit(shrink= 1e3, topK = 200)
 
     score, _ = evaluator_test.evaluateRecommender(recommender)
     recall = score['RECALL']
@@ -47,10 +47,10 @@ def main():
 
     study = optuna.create_study(
         direction='maximize',
-        study_name='SLIMElasticNetRecommender',
-        storage='sqlite:///OptunaStudies/SLIME_optimization.db',  # This saves to a file
+        study_name='ITEMKNNRecommender1',
+        storage='sqlite:///OptunaStudies/ITEMKNNRecommender.db',  # This saves to a file
     )
-    study.optimize(objective, n_trials=20)  # Run 50 trials
+    study.optimize(objective, n_trials=200)  # Run 50 trials
     # 3. Print the results
     print("Number of finished trials:", len(study.trials))
     print("Best trial:")
@@ -65,7 +65,6 @@ def main():
     best_accuracy = 1.0 - trial.value
     print(f"\nBest Cross-Validated Accuracy: {best_accuracy:.4f}")
 
-    print("ciao")
     # Plot the optimization history
     vis.plot_optimization_history(study).show()
 
