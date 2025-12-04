@@ -35,16 +35,16 @@ def main():
     URM_train, URM_test = split_train_in_two_percentage_global_sample(URM_all, train_percentage=0.80)
     URM_train, URM_validation = split_train_in_two_percentage_global_sample(URM_train, train_percentage=0.80)
     evaluator_test = EvaluatorHoldout(URM_test, cutoff_list=[20])
+    evaluator_validation = EvaluatorHoldout(URM_validation, cutoff_list=[20])
 
     start_time = time.time()
 
-    recommender = PureSVDRecommender(URM_train)
+    recommender = SLIMElasticNetRecommender(URM_train)
 
-    recommender.fit()
-    #recommender.save_model(folder_path="best_models_test/", file_name="bestSLIMElasticNetRecommender")
-    print(recommender.get_ITEM_factors().shape)
-    print(URM_all_dataframe["ItemID"].value_counts())
-    #print(evaluator_test.evaluateRecommender(recommender))
+    recommender.fit(topK=436, alpha=0.001239600142319664, l1_ratio=0.001002639662685697)
+    recommender.save_model(folder_path="best_models_1/", file_name="bestSLIMElasticNetRecommender")
+
+    print(evaluator_validation.evaluateRecommender(recommender))
 
     #outputFile = "outputEASYRRecommender.csv"
     #toOutput(user_id_list, recommender, outputFile)
