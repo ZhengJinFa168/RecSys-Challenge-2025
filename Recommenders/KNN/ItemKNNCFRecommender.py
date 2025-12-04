@@ -54,3 +54,6 @@ class ItemKNNCFRecommender(BaseItemSimilarityMatrixRecommender):
 
         self.W_sparse = similarity.compute_similarity()
         self.W_sparse = check_matrix(self.W_sparse, format='csr')
+
+    def get_W_sparse(self):
+        return self.W_sparse
