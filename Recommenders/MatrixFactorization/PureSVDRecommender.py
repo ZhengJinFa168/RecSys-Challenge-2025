@@ -53,6 +53,8 @@ class PureSVDRecommender(BaseSVDRecommender):
 
     def get_ITEM_factors(self):
         return self.ITEM_factors
+    def get_USER_factors(self):
+        return self.USER_factors
 
 
 
