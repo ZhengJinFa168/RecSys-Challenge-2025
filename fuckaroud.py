@@ -18,7 +18,6 @@ from Recommenders.Neural.MultVAE_PyTorch_Recommender import MultVAERecommender_P
     MultVAERecommender_PyTorch_OptimizerMask
 from Recommenders.SLIM.SLIMElasticNetRecommender import SLIMElasticNetRecommender
 from Recommenders.Similarity.Compute_Similarity_Python import Compute_Similarity_Python
-from data_exploration import URM_validation
 from helping_methods import toOutput, evaluate_algorithm
 
 import time
@@ -39,12 +38,13 @@ def main():
 
     start_time = time.time()
 
-    recommender = SLIMElasticNetRecommender(URM_train)
+    recommender = PureSVDRecommender(URM_train)
 
-    recommender.fit(topK=436, alpha=0.001239600142319664, l1_ratio=0.001002639662685697)
-    recommender.save_model(folder_path="best_models_test/", file_name="bestSLIMElasticNetRecommender")
-
-    print(evaluator_test.evaluateRecommender(recommender))
+    recommender.fit()
+    #recommender.save_model(folder_path="best_models_test/", file_name="bestSLIMElasticNetRecommender")
+    print(recommender.get_ITEM_factors().shape)
+    print(URM_all_dataframe["ItemID"].value_counts())
+    #print(evaluator_test.evaluateRecommender(recommender))
 
     #outputFile = "outputEASYRRecommender.csv"
     #toOutput(user_id_list, recommender, outputFile)

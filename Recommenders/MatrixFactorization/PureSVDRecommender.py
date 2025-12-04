@@ -51,6 +51,9 @@ class PureSVDRecommender(BaseSVDRecommender):
         new_time_value, new_time_unit = seconds_to_biggest_unit(time.time()-start_time)
         self._print("Computing SVD decomposition... done in {:.2f} {}".format( new_time_value, new_time_unit))
 
+    def get_ITEM_factors(self):
+        return self.ITEM_factors
+
 
 
 

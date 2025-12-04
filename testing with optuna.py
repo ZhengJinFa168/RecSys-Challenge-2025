@@ -5,7 +5,10 @@ import matplotlib.pyplot as pyplot
 from Evaluation.Evaluator import EvaluatorHoldout
 from Data_manager.split_functions.split_train_validation_random_holdout import split_train_in_two_percentage_global_sample
 from Recommenders.EASE_R.EASE_R_Recommender import EASE_R_Recommender
+from Recommenders.GraphBased.RP3betaRecommender import RP3betaRecommender
 from Recommenders.KNN.ItemKNNCFRecommender import ItemKNNCFRecommender
+from Recommenders.MatrixFactorization.PureSVDRecommender import PureSVDRecommender, PureSVDItemRecommender, \
+    ScaledPureSVDRecommender
 from Recommenders.SLIM.SLIMElasticNetRecommender import SLIMElasticNetRecommender
 from Recommenders.Similarity.Compute_Similarity_Python import Compute_Similarity_Python
 from helping_methods import toOutput, evaluate_algorithm
@@ -28,12 +31,14 @@ def objective(trial):
 
     evaluator_test = EvaluatorHoldout(URM_test, cutoff_list=[20])
 
-    recommender = ItemKNNCFRecommender(URM_train)
-    # 1.1. Suggest hyperparameters
-    topK = trial.suggest_int('topK', 50, 1000)
-    shrink = trial.suggest_int('shrink', 1, 1000)
+    recommender = ScaledPureSVDRecommender(URM_train)
 
-    recommender.fit(shrink= 1e3, topK = 200)
+    # 1.1. Suggest hyperparameters
+    num_factors = trial.suggest_int('num_factors', 10, 1000)
+    scaling_items = trial.suggest_float('scaling_items', 0.5, 1.5)
+    scaling_users = trial.suggest_float('scaling_users', 0.5, 1.5)
+
+    recommender.fit(num_factors = num_factors, random_seed = 1, scaling_items = scaling_items, scaling_users = scaling_users)
 
     score, _ = evaluator_test.evaluateRecommender(recommender)
     recall = score['RECALL']
