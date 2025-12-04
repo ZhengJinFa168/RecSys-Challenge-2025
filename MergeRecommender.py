@@ -23,8 +23,11 @@ class DifferentLossRecommender(BaseItemSimilarityMatrixRecommender):
         self.recommenders = Recommenders
         self.normalization_method = normalization_method
         self.normalization_stats = {}  # Store normalization parameters for each recommender
-        
-    def fit(self, coefficients, fit_recommenders=True):
+        # Compute normalization statistics for each recommender
+        if self.normalization_method is not None:
+            self._compute_normalization_stats()
+
+    def fit(self, coefficients):
         """
         Fit the hybrid recommender.
         
@@ -37,17 +40,7 @@ class DifferentLossRecommender(BaseItemSimilarityMatrixRecommender):
             raise ValueError(f"Number of coefficients ({len(coefficients)}) doesn't match number of recommenders ({len(self.recommenders)})")
         
         self.coefficients = coefficients
-        
-        # Optionally fit all base recommenders
-        if fit_recommenders:
-            for i, recommender in enumerate(self.recommenders):
-                if self.verbose:
-                    print(f"Fitting recommender {i+1}/{len(self.recommenders)}...")
-                recommender.fit()
-        
-        # Compute normalization statistics for each recommender
-        if self.normalization_method is not None:
-            self._compute_normalization_stats()
+
             
     def _compute_normalization_stats(self):
         """Compute normalization statistics for all recommenders."""
@@ -184,4 +177,3 @@ class DifferentLossRecommender(BaseItemSimilarityMatrixRecommender):
         # item_weights = softmax(item_weights, axis=1)
         
         return item_weights
-    
