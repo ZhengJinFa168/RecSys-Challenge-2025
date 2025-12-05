@@ -9,6 +9,8 @@ from MergeRecommender import DifferentLossRecommender
 from Recommenders.EASE_R.EASE_R_Recommender import EASE_R_Recommender
 from Recommenders.GraphBased.P3alphaRecommender import P3alphaRecommender
 from Recommenders.GraphBased.RP3betaRecommender import RP3betaRecommender
+from Recommenders.KNN.ItemKNNCFRecommender import ItemKNNCFRecommender
+from Recommenders.KNN.ItemKNNCustomSimilarityRecommender import ItemKNNCustomSimilarityRecommender
 from Recommenders.MatrixFactorization.IALSRecommender import IALSRecommender
 from Recommenders.MatrixFactorization.NMFRecommender import NMFRecommender
 from Recommenders.MatrixFactorization.PureSVDRecommender import PureSVDRecommender, PureSVDItemRecommender, \
@@ -33,50 +35,33 @@ def main():
     URM_all = sps.csr_matrix((URM_all_dataframe['hasInteraction'].values,
                               (URM_all_dataframe['UserID'].values, URM_all_dataframe['ItemID'].values)))
 
-    URM_train, URM_test = split_train_in_two_percentage_global_sample(URM_all, train_percentage=0.80)
-
+    URM_train_complete, URM_test = split_train_in_two_percentage_global_sample(URM_all, train_percentage=0.80)
+    URM_train, URM_validation = split_train_in_two_percentage_global_sample(URM_train_complete, train_percentage=0.80)
     evaluator_test = EvaluatorHoldout(URM_test, cutoff_list=[20])
 
     start_time = time.time()
-    recommenders=[]
 
-    slimElasticNetRecommender=SLIMElasticNetRecommender(URM_all)
-    easyRecommender=EASE_R_Recommender(URM_all)
+    slimElasticNetRecommender=SLIMElasticNetRecommender(URM_train_complete)
+    rp3betaRecommender=RP3betaRecommender(URM_train_complete)
 
-    test=True
-    if not test:
-        file_path= "best_models_train/"
-        if(os.path.exists(file_path + "bestSLIMElasticNetRecommender.zip")):
-            print("SLIMElasticNetRecommender is already trained")
-            slimElasticNetRecommender.load_model(folder_path=file_path, file_name="bestSLIMElasticNetRecommender.zip")
-        else:
-            slimElasticNetRecommender.fit(topK=436, alpha = 0.001239600142319664, l1_ratio=0.001002639662685697)
-            slimElasticNetRecommender.save_model(folder_path="best_models_train/", file_name="bestSLIMElasticNetRecommender")
-        if (os.path.exists(file_path + "bestEASYR_Recommender.zip")):
-            print("EASYR_Recommender is already trained")
-            easyRecommender.load_model(folder_path=file_path, file_name="bestEASYR_Recommender.zip")
-        else:
-            easyRecommender.fit(topK=100, l2_norm=1e3, normalize_matrix=False)
-            easyRecommender.save_model(folder_path="best_models_train/", file_name="bestEASYR_Recommender")
+    file_path = "best_models_train/"
+    if (os.path.exists(file_path + "bestSLIMElasticNetRecommender.zip")):
+        print("SLIMElasticNetRecommender is already trained")
+        slimElasticNetRecommender.load_model(folder_path=file_path, file_name="bestSLIMElasticNetRecommender.zip")
     else:
         slimElasticNetRecommender.fit(topK=436, alpha=0.001239600142319664, l1_ratio=0.001002639662685697)
-        easyRecommender.fit(topK=100, l2_norm=1e3, normalize_matrix=False)
-    #print(slimElasticNetRecommender._compute_item_score(users_to_test))
-    #print(easyRecommender._compute_score_W_dense(users_to_test))
-    recommenders.append(slimElasticNetRecommender)
-    recommenders.append(easyRecommender)
 
-    coefficients=[499.9522535401951,337.0469866084344]
+    rp3betaRecommender.fit(alpha=1.7726359081010594,beta= 0.3503980285071963,topK=48,normalize_similarity=True)
 
-    finalRecommender = DifferentLossRecommender(URM_all,recommenders)
+    alpha= 0.8
+    W_final=alpha*slimElasticNetRecommender.W_sparse + (1-alpha)*rp3betaRecommender.W_sparse
 
-    finalRecommender.fit(coefficients=coefficients)
+    finalRecommender = ItemKNNCustomSimilarityRecommender(URM_train_complete)
+
+    finalRecommender.fit(W_final,selectTopK=True,topK=100)
     #finalRecommender.save_model(folder_path="./saved_models/" ,file_name="DifferentLossRecommender")
-
-    print(evaluator_test.evaluateRecommender(finalRecommender))
-
-    outputFile = "DifferentLossRecommender.csv"
-    toOutput(user_id_list, finalRecommender, outputFile)
+    print(evaluator_test.evaluateRecommender(slimElasticNetRecommender))
+    #print(evaluator_test.evaluateRecommender(finalRecommender))
 
     end_time = time.time()
 
