@@ -41,10 +41,10 @@ def main():
 
     start_time = time.time()
 
-    slimElasticNetRecommender=SLIMElasticNetRecommender(URM_train_complete)
-    rp3betaRecommender=RP3betaRecommender(URM_train_complete)
+    slimElasticNetRecommender=SLIMElasticNetRecommender(URM_all)
+    rp3betaRecommender=RP3betaRecommender(URM_all)
 
-    file_path = "best_models_train/"
+    file_path = "best_models_test/"
     if (os.path.exists(file_path + "bestSLIMElasticNetRecommender.zip")):
         print("SLIMElasticNetRecommender is already trained")
         slimElasticNetRecommender.load_model(folder_path=file_path, file_name="bestSLIMElasticNetRecommender.zip")
@@ -53,18 +53,20 @@ def main():
 
     rp3betaRecommender.fit(alpha=1.7726359081010594,beta= 0.3503980285071963,topK=48,normalize_similarity=True)
 
-    alpha= 0.8
+    alpha= 0.9487854330911072
     W_final=alpha*slimElasticNetRecommender.W_sparse + (1-alpha)*rp3betaRecommender.W_sparse
 
-    finalRecommender = ItemKNNCustomSimilarityRecommender(URM_train_complete)
+    finalRecommender = ItemKNNCustomSimilarityRecommender(URM_all)
 
-    finalRecommender.fit(W_final,selectTopK=True,topK=100)
+    finalRecommender.fit(W_final,selectTopK=True,topK=994)
     #finalRecommender.save_model(folder_path="./saved_models/" ,file_name="DifferentLossRecommender")
     print(evaluator_test.evaluateRecommender(slimElasticNetRecommender))
-    #print(evaluator_test.evaluateRecommender(finalRecommender))
+    print(evaluator_test.evaluateRecommender(finalRecommender))
 
     end_time = time.time()
 
+    outputFile = "outputhybridRecommender.csv"
+    toOutput(user_id_list, finalRecommender, outputFile)
     n_users_to_test=len(users_to_test)
     print("Reasonable implementation speed is {:.2f} usr/sec".format(n_users_to_test / (end_time - start_time)))
 

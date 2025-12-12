@@ -32,17 +32,16 @@ def main():
     URM_all = sps.csr_matrix((URM_all_dataframe['hasInteraction'].values,
                               (URM_all_dataframe['UserID'].values, URM_all_dataframe['ItemID'].values)))
 
-    URM_train, URM_test = split_train_in_two_percentage_global_sample(URM_all, train_percentage=0.80)
-    URM_train, URM_validation = split_train_in_two_percentage_global_sample(URM_train, train_percentage=0.80)
+    URM_train_complete, URM_test = split_train_in_two_percentage_global_sample(URM_all, train_percentage=0.80)
+    URM_train, URM_validation = split_train_in_two_percentage_global_sample(URM_train_complete, train_percentage=0.80)
     evaluator_test = EvaluatorHoldout(URM_test, cutoff_list=[20])
     evaluator_validation = EvaluatorHoldout(URM_validation, cutoff_list=[20])
 
     start_time = time.time()
 
-    recommender = SLIMElasticNetRecommender(URM_train)
-
-    recommender.fit(topK=436, alpha=0.001239600142319664, l1_ratio=0.001002639662685697)
-    recommender.save_model(folder_path="best_models_1/", file_name="bestSLIMElasticNetRecommender")
+    recommender = IALSRecommender(URM_train_complete)
+    recommender.fit(num_factors=86, alpha=3.17051677957448, epsilon=0.039873271755949916,reg=0.7743602221283774,init_mean=2.6486507999035966,init_std=2.3446108787910958,confidence_scaling='log')
+    recommender.save_model(folder_path="best_models_train/", file_name="bestIALSRecommender")
 
     print(evaluator_validation.evaluateRecommender(recommender))
 

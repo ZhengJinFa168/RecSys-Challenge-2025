@@ -298,10 +298,12 @@ class MultVAERecommender_PyTorch(BaseRecommender, Incremental_Training_Early_Sto
             # Clear previously computed gradients
             self._optimizer.zero_grad()
 
-            u = torch.LongTensor(np.random.choice(self.warm_user_ids, size=self.batch_size))
+            # Get numpy array first
+            u_numpy = np.random.choice(self.warm_user_ids, size=self.batch_size)
+            u = torch.LongTensor(u_numpy)  # Keep tensor for consistency
 
             # Transferring only the sparse structure to reduce the data transfer
-            user_batch_tensor = self.URM_train[u]
+            user_batch_tensor = self.URM_train[u_numpy]  # Use numpy array
             user_batch_tensor = torch.sparse_csr_tensor(user_batch_tensor.indptr,
                                                         user_batch_tensor.indices,
                                                         user_batch_tensor.data,
