@@ -39,9 +39,9 @@ def main():
 
     start_time = time.time()
 
-    recommender = IALSRecommender(URM_train_complete)
+    recommender = IALSRecommender(URM_all)
     recommender.fit(num_factors=86, alpha=3.17051677957448, epsilon=0.039873271755949916,reg=0.7743602221283774,init_mean=2.6486507999035966,init_std=2.3446108787910958,confidence_scaling='log')
-    recommender.save_model(folder_path="best_models_train/", file_name="bestIALSRecommender")
+    recommender.save_model(folder_path="best_models_test/", file_name="bestIALSRecommender")
 
     print(evaluator_validation.evaluateRecommender(recommender))
 
