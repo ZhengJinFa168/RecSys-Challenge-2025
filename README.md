@@ -9,7 +9,7 @@ This project combines collaborative filtering, content-based techniques, matrix 
   - **Collaborative Filtering:** Item-based and User-based k-NN heuristics.
   - **Matrix Factorization:** Latent factor extraction via Matrix Factorization / SVD.
   - **Content-Based Filtering:** TF-IDF and item feature embeddings.
-  - **Gradient Boosting (GBDT):** Final ensembling layer combining candidate scores using XGBoost / LightGBM.
+  - **Gradient Boosting:** Final ensembling layer combining candidate scores using XGBoost.
 - **Evaluation & Benchmarking:**
   - Custom evaluation pipeline computing **MAP@10**, **NDCG@10**, and **Precision@K**.
   - Hyperparameter optimization across model pipelines.
